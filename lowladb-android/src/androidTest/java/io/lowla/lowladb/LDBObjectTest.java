@@ -94,6 +94,15 @@ public class LDBObjectTest extends TestCase {
         assertEquals("0123456789abcdef01234567", oid.toHexString());
     }
 
+    public void testItCanReadBoolsFromAMap() {
+        Map map = new HashMap();
+        map.put("mybool", true);
+
+        LDBObject obj = LDBObject.objectWithMap(map);
+        assertTrue(obj.containsField("mybool"));
+        assertTrue(obj.boolForField("mybool"));
+    }
+
     public void testAsJson() {
         LDBObject obj = new LDBObjectBuilder().appendString("myfield", "mystring").finish();
         String check = obj.asJson();
