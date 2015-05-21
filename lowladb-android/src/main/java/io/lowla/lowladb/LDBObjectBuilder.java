@@ -20,6 +20,8 @@ public class LDBObjectBuilder {
     public native LDBObjectBuilder appendDate(String field, Date value);
     public native LDBObjectBuilder appendInt(String field, int value);
     public native LDBObjectBuilder appendLong(String field, long value);
+    public native LDBObjectBuilder startArray(String field);
+    public native LDBObjectBuilder finishArray();
 
     public LDBObject finish() {
         return LDBObject.initWithPtr(finishBson());

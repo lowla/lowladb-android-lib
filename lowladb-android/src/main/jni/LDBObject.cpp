@@ -152,6 +152,25 @@ Java_io_lowla_lowladb_LDBObject_longForField(JNIEnv *env, jobject jThis, jstring
     return answer;
 }
 
+extern "C" JNIEXPORT jobject JNICALL
+Java_io_lowla_lowladb_LDBObject_arrayForField(JNIEnv *env, jobject jThis, jstring str)
+{
+    CLowlaDBBson::ptr &ptr = getPtr(env, jThis);
+    const char *szUtf = env->GetStringUTFChars(str, NULL);
+    CLowlaDBBson::ptr answer;
+    ptr->arrayForKey(szUtf, &answer);
+    env->ReleaseStringUTFChars(str, szUtf);
+    if (answer) {
+        jclass clazz = env->GetObjectClass(jThis);
+        jmethodID ctor = env->GetMethodID(clazz, "<init>", "(J)V");
+        jobject ret = env->NewObject(clazz, ctor, (jlong)new CLowlaDBBson::ptr(answer));
+        return ret;
+    }
+    else {
+        return nullptr;
+    }
+}
+
 extern "C" JNIEXPORT jstring JNICALL
 Java_io_lowla_lowladb_LDBObject_asJson(JNIEnv *env, jobject jThis)
 {

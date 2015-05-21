@@ -33,32 +33,7 @@ public class LDBObject {
 
         for (String key : sortedKeys) {
             Object value = map.get(key);
-            if (value instanceof String) {
-                builder.appendString(key, (String) value);
-            } else if (value instanceof Date) {
-                builder.appendDate(key, (Date) value);
-            } else if (value instanceof Map) {
-                Object bsonType = ((Map)value).get("_bsonType");
-                if (null != bsonType) {
-                    if (bsonType.toString().equals("ObjectId")) {
-                        String hexString = ((Map) value).get("hexString").toString();
-                        LDBObjectId oid = new LDBObjectId(hexString);
-                        builder.appendObjectId(key, oid);
-                    }
-                } else {
-                    builder.appendObject(key, LDBObject.objectWithMap((Map<String, ?>)value));
-                }
-            } else if (value instanceof Integer) {
-                builder.appendInt(key, (Integer) value);
-            } else if (value instanceof Long) {
-                builder.appendLong(key, (Long) value);
-            } else if (value instanceof Double) {
-                builder.appendDouble(key, (Double) value);
-            } else if (value instanceof Boolean) {
-                builder.appendBool(key, (Boolean) value);
-            } else {
-                throw new IllegalArgumentException("Unsupported object type '" + value.getClass().toString() + "' for key '" + key + "'");
-            }
+            appendValueToBuilder(key, value, builder);
         }
         return builder.finish();
     }
@@ -72,6 +47,7 @@ public class LDBObject {
     public native Date dateForField(String field);
     public native int intForField(String field);
     public native long longForField(String field);
+    public native LDBObject arrayForField(String field);
     public native String asJson();
 
     @Override
@@ -90,6 +66,42 @@ public class LDBObject {
         if (0 != ptr) {
             dealloc(ptr);
             ptr = 0;
+        }
+    }
+
+    private static void appendValueToBuilder(String key, Object value, LDBObjectBuilder builder) {
+        if (value instanceof String) {
+            builder.appendString(key, (String) value);
+        } else if (value instanceof Date) {
+            builder.appendDate(key, (Date) value);
+        } else if (value instanceof Map) {
+            Object bsonType = ((Map)value).get("_bsonType");
+            if (null != bsonType) {
+                if (bsonType.toString().equals("ObjectId")) {
+                    String hexString = ((Map) value).get("hexString").toString();
+                    LDBObjectId oid = new LDBObjectId(hexString);
+                    builder.appendObjectId(key, oid);
+                }
+            } else {
+                builder.appendObject(key, LDBObject.objectWithMap((Map<String, ?>)value));
+            }
+        } else if (value instanceof Integer) {
+            builder.appendInt(key, (Integer) value);
+        } else if (value instanceof Long) {
+            builder.appendLong(key, (Long) value);
+        } else if (value instanceof Double) {
+            builder.appendDouble(key, (Double) value);
+        } else if (value instanceof Boolean) {
+            builder.appendBool(key, (Boolean) value);
+        } else if (value instanceof Object[]) {
+            builder.startArray(key);
+            Object[] arr = (Object[])value;
+            for (int i = 0 ; i < arr.length ; ++i) {
+                appendValueToBuilder(String.valueOf(i), arr[i], builder);
+            }
+            builder.finishArray();
+        } else {
+            throw new IllegalArgumentException("Unsupported object type '" + value.getClass().toString() + "' for key '" + key + "'");
         }
     }
 

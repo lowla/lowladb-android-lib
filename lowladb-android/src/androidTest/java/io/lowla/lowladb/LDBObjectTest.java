@@ -103,6 +103,15 @@ public class LDBObjectTest extends TestCase {
         assertTrue(obj.boolForField("mybool"));
     }
 
+    public void testItCanReadArraysFromAMap() {
+        Map map = new HashMap();
+        map.put("myarr", new Object[] {"mystring"});
+
+        LDBObject obj = LDBObject.objectWithMap(map);
+        assertTrue(obj.containsField("myarr"));
+        assertEquals("mystring", obj.arrayForField("myarr").stringForField("0"));
+    }
+
     public void testAsJson() {
         LDBObject obj = new LDBObjectBuilder().appendString("myfield", "mystring").finish();
         String check = obj.asJson();

@@ -62,4 +62,11 @@ public class LDBObjectBuilderTest extends ApplicationTestCase<Application> {
         assertTrue(obj.containsField("myfield"));
         assertEquals(314000000000000L, obj.longForField("myfield"));
     }
+
+    public void testAppendArray() {
+        LDBObject obj = new LDBObjectBuilder().startArray("myarr").appendInt("0", 5).finishArray().finish();
+        assertTrue(obj.containsField("myarr"));
+        LDBObject arr = obj.arrayForField("myarr");
+        assertEquals(5, arr.intForField("0"));
+    }
 }

@@ -185,6 +185,34 @@ public class LDBClientTest extends ApplicationTestCase<Application> {
         server.shutdown();
     }
 
+    public void testOneDeletionChangeDoesntPull() throws IOException {
+        final boolean[] check = new boolean[1];
+        final MockWebServer server = new MockWebServer();
+        final List events = new ArrayList<LDBClient.LDBSyncStatus>();
+
+        server.enqueue(new MockResponse().setBody("{ \"atoms\" : [{ \"id\" : \"mydb.mycoll$1\", \"sequence\" : 1, \"version\" : 1, \"deleted\" : true, \"clientNs\" : \"mydb.mycoll\" }], \"sequence\" : 2}"));
+        server.start();
+        URL url = server.getUrl("");
+        LDBClient.sync(url.toString(), new LDBClient.SyncNotifier() {
+            @Override
+            public void notify(LDBClient.LDBSyncStatus status, String message) {
+                if (LDBClient.LDBSyncStatus.ERROR == status || LDBClient.LDBSyncStatus.OK == status) {
+                    check[0] = true;
+                    assertEquals(LDBClient.LDBSyncStatus.OK, status);
+                    assertEquals("2", Integration.INSTANCE.getProperty("sequence", "0"));
+                }
+            }
+        });
+
+        try {
+            assertTrue(check[0]);
+            assertEquals(1, server.getRequestCount());
+            assertEquals("/_lowla/changes?seq=0", server.takeRequest().getPath());
+        }
+        catch (InterruptedException offs) {}
+        server.shutdown();;
+    }
+
     private void clearDataDirectory() {
         File dir = new File(Integration.INSTANCE.getDataDirectory());
         for (File child : dir.listFiles()) {

@@ -66,6 +66,11 @@ static bool pullChunk(JNIEnv *env, const utf16string &server, CLowlaDBPullData::
         return false;
     }
 
+    if (!pullRequestBson) {
+        lowladb_apply_json_pull_response("[]", pd);
+        return true;
+    }
+
     utf16string url = server + "/_lowla/pull";
     jbyteArray response = doHttp(env, url, pullRequestBson);
     if (!env->ExceptionCheck()) {

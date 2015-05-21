@@ -124,6 +124,24 @@ Java_io_lowla_lowladb_LDBObjectBuilder_appendLong(JNIEnv *env, jobject jThis, js
     return jThis;
 }
 
+extern "C" JNIEXPORT jobject JNICALL
+Java_io_lowla_lowladb_LDBObjectBuilder_startArray(JNIEnv *env, jobject jThis, jstring str)
+{
+    CLowlaDBBson::ptr &ptr = getPtr(env, jThis);
+    const char *szUtf = env->GetStringUTFChars(str, NULL);
+    ptr->startArray(szUtf);
+    env->ReleaseStringUTFChars(str, szUtf);
+    return jThis;
+}
+
+extern "C" JNIEXPORT jobject JNICALL
+Java_io_lowla_lowladb_LDBObjectBuilder_finishArray(JNIEnv *env, jobject jThis)
+{
+    CLowlaDBBson::ptr &ptr = getPtr(env, jThis);
+    ptr->finishArray();
+    return jThis;
+}
+
 extern "C" JNIEXPORT jlong JNICALL Java_io_lowla_lowladb_LDBObjectBuilder_finishBson(JNIEnv *env, jobject jThis)
 {
     CLowlaDBBson::ptr &ptr = getPtr(env, jThis);
